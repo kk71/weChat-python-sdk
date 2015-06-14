@@ -4,8 +4,8 @@ import hashlib
 import requests
 import time
 import json
-import cgi
-from StringIO import StringIO
+import html
+from io import StringIO, TextIOBase, BufferedIOBase, RawIOBase
 
 from xml.dom import minidom
 
@@ -105,10 +105,8 @@ class WechatBasic(object):
         :raises ParseError: 解析微信服务器数据错误, 数据不合法
         """
         result = {}
-        if type(data) == unicode:
+        if type(data) == str:
             data = data.encode('utf-8')
-        elif type(data) == str:
-            pass
         else:
             raise ParseError()
 
@@ -172,7 +170,7 @@ class WechatBasic(object):
         self._check_parse()
         content = self._transcoding(content)
         if escape:
-            content = cgi.escape(content)
+            content = html.escape(content)
 
         return TextReply(message=self.__message, content=content).render()
 
@@ -385,11 +383,14 @@ class WechatBasic(object):
         :raise HTTPError: 微信api http 请求失败
         """
         self._check_appid_appsecret()
-        if not isinstance(media_file, file) and not isinstance(media_file, StringIO):
-            raise ValueError('Parameter media_file must be file object or StringIO.StringIO object.')
+        if not isinstance(media_file, TextIOBase) and \
+           not isinstance(media_file, BufferedIOBase) and \
+           not isinstance(media_file, StringIO):
+            raise ValueError('Parameter media_file must be file object or StringIO object.')
         if isinstance(media_file, StringIO) and extension.lower() not in ['jpg', 'jpeg', 'amr', 'mp3', 'mp4']:
             raise ValueError('Please provide \'extension\' parameters when the type of \'media_file\' is \'StringIO.StringIO\'.')
-        if isinstance(media_file, file):
+        if isinstance(media_file, TextIOBase) or \
+           isinstance(media_file, BufferedIOBase):
             extension = media_file.name.split('.')[-1]
             if extension.lower() not in ['jpg', 'jpeg', 'amr', 'mp3', 'mp4']:
                 raise ValueError('Invalid file type.')
@@ -956,7 +957,7 @@ class WechatBasic(object):
 
         result = None
         if isinstance(data, str):
-            result = data.decode('utf-8')
+            result = data.encode('utf-8')
         else:
             result = data
         return result
