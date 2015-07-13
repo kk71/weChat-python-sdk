@@ -952,15 +952,7 @@ class WechatBasic(object):
         :param data: 需要转换的数据
         :return: 转换好的数据
         """
-        if not data:
-            return data
-
-        result = None
-        if isinstance(data, str):
-            result = data.encode('utf-8')
-        else:
-            result = data
-        return result
+        return data
 
     def _transcoding_list(self, data):
         """
